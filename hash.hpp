@@ -6,7 +6,7 @@
 
 namespace hash{
 
-void crc8_update( std::uint8_t &crc, std::uint8_t data ) noexcept;;
+void crc8_update( std::uint8_t &crc, std::uint8_t data ) noexcept;
 void crc8_update( std::uint8_t &crc, std::uint8_t const *data, std::size_t len ) noexcept;
 std::uint8_t crc8( std::uint8_t const *data, std::size_t len ) noexcept;
 
