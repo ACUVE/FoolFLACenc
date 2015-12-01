@@ -1,6 +1,7 @@
 *.slo
 *.lo
 *.o
+*.s
 *.obj
 *.gch
 *.pch
@@ -25,3 +26,5 @@ install_manifest.txt
 *.wav
 *.flac
 ffe
+
+*.swp
