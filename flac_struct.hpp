@@ -4,6 +4,7 @@
 #define FLAC_STRUCT_HPP
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 #include <experimental/optional>
@@ -266,8 +267,24 @@ namespace MetaData
 } // namespace MetaData
 
 // functions
+//// read.cpp
 optional< MetaData::Metadata > ReadMetadata( bitstream &bs );
-optional< Frame::Frame >       ReadFrame( bitstream &bs, MetaData::StreamInfo const &si );
+optional< Frame::Frame >       ReadFrame   ( bitstream &bs, MetaData::StreamInfo const &si );
+//// print.cpp
+void PrintStreamInfo      ( FLAC::MetaData::StreamInfo const &si );
+void PrintFrameHeader     ( FLAC::Frame::Header const &fh );
+void PrintFrameFooter     ( FLAC::Frame::Footer const &ff );
+void PrintSubframeHeader  ( FLAC::Subframe::Header const &sfh );
+void PrintPartitionedRice ( FLAC::Subframe::PartitionedRice const &rice );
+void PrintResidual        ( FLAC::Subframe::Residual const &res, std::uint16_t const residualsize );
+void PrintSubframeConstant( FLAC::Subframe::Constant const &c, std::uint16_t const blocksize);
+void PrintSubframeFixed   ( FLAC::Subframe::Fixed const &f, std::uint16_t const blocksize );
+void PrintSubframeLPC     ( FLAC::Subframe::LPC const &lpc, std::uint16_t const blocksize );
+void PrintSubframeVerbatim( FLAC::Subframe::Verbatim const &v, std::uint16_t const blocksize );
+void PrintSubframe        ( FLAC::Subframe::Subframe const &sf, std::uint16_t const blocksize );
+void PrintFrame           ( FLAC::Frame::Frame const &f );
+//// write.cpp
+bool WriteMetadata( bitstream &bs );
 
 } // namespace FLAC
 
