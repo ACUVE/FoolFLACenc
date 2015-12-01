@@ -283,8 +283,6 @@ void PrintSubframeLPC     ( FLAC::Subframe::LPC const &lpc, std::uint16_t const 
 void PrintSubframeVerbatim( FLAC::Subframe::Verbatim const &v, std::uint16_t const blocksize );
 void PrintSubframe        ( FLAC::Subframe::Subframe const &sf, std::uint16_t const blocksize );
 void PrintFrame           ( FLAC::Frame::Frame const &f );
-//// write.cpp
-bool WriteMetadata( bitstream &bs );
 
 } // namespace FLAC
 
