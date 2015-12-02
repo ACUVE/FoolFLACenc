@@ -10,8 +10,6 @@
 #include "buffer.hpp"
 #include "flac_struct.hpp"
 
-constexpr char const *filename = "flac.flac";
-
 [[noreturn]]
 inline
 bool fatal_impl( void )
@@ -62,7 +60,7 @@ void dump_flacfile( char const *filename )
             break;
     }
     if( !si )
-        fatal( filename, ": No StreamInfo.");
+        fatal( filename, ": No StreamInfo." );
     FLAC::PrintStreamInfo( *si );
     
     while( true )
@@ -77,10 +75,11 @@ void dump_flacfile( char const *filename )
 
 int main( int argc, char **argv )
 {
-    char const *openfilename = argc > 1 ? argv[ 1 ] : filename;
+    if( argc <= 1 )
+        fatal( "No filename" );
     try
     {
-        dump_flacfile( openfilename );
+        dump_flacfile( argv[ 1 ] );
     }
     catch( std::exception &e )
     {
