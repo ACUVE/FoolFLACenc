@@ -4,6 +4,7 @@
 #include <utility>
 #include "buffer.hpp"
 #include "flac_struct.hpp"
+#include "hash.hpp"
 #include "utility.hpp"
 
 #define SHOW(op) do{ std::cout << __func__ << ":L." << __LINE__ << ": " << #op << " = " << static_cast< std::intmax_t >( op ) << std::endl; }while( false )
@@ -222,8 +223,10 @@ template< typename BitStream >
 static
 Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
 {
-    auto bs = make_useful_bitstream( b );
-    assert( bs.is_byte_aligned() );
+    assert( b.is_byte_aligned() );
+    auto crc8bs = make_hash_bytestream< hash::crc8_hash >( b.get_bytestream() );
+    auto crc8bits = make_bitstream( crc8bs );
+    auto bs = make_useful_bitstream( crc8bits );
     Frame::Header h;
     if( bs.get( 14 ) != FRAME_HEADER_SYNC )
         throw exception( "ReadFrame_Header: sync error" );
@@ -321,7 +324,12 @@ Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
     case 0b101: h.bits_per_sample = 20; break;
     case 0b110: h.bits_per_sample = 24; break;
     }
-    h.crc = bs.get( 8 );
+    assert( bs.is_byte_aligned() );
+    std::uint8_t calculated_crc8 = crc8bs.get_hash().get();
+    auto noncrc8bs = make_useful_bitstream( b );
+    h.crc = noncrc8bs.get( 8 );
+    if( h.crc != calculated_crc8 )
+        throw exception( "ReadFrame_Header: crc mismatch" );
     return std::move( h );
 }
 
@@ -329,8 +337,9 @@ Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
 
 Frame::Frame ReadFrame( bytestream<> &b, MetaData::StreamInfo const &si )
 {
-    bitstream< bytestream<> > bits( b );
-    auto bs = make_useful_bitstream( bits );
+    auto crc16bs = make_hash_bytestream< hash::crc16_hash >( b );
+    auto crc16bits = make_bitstream( crc16bs );
+    auto bs = make_useful_bitstream( crc16bits );
     Frame::Frame f;
     f.header = ReadFrame_Header( bs, si );
     for( std::uint8_t i = 0; i < f.header.channels; ++i )
@@ -359,7 +368,12 @@ Frame::Frame ReadFrame( bytestream<> &b, MetaData::StreamInfo const &si )
     }
     while( std::get< 1 >( bs.get_position() ) )
         bs.get( 1 );
-    f.footer = ReadFrame_Footer( bs );
+    assert( bs.is_byte_aligned() );
+    std::uint16_t calculated_crc = crc16bs.get_hash().get();
+    auto noncrc16bits = make_bitstream( b );
+    f.footer = ReadFrame_Footer( noncrc16bits ); // ReadFrame_Footer only read crc
+    if( f.footer.crc != calculated_crc )
+        throw exception( "ReadFrame: crc mismatch" );
     return std::move( f );
 }
 
