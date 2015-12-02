@@ -18,7 +18,7 @@ static
 std::tuple< std::unique_ptr< std::int64_t[] >, Subframe::PartitionedRice > ReadSubframe_Residual_PartitionedRice( BitStream &b, std::uint8_t const predictor_order, std::uint8_t const bps, std::uint16_t const blocksize )
 {
     static_assert( PARAMETER_LEN <= 8, "PARAMETER_LEN must be under or equal to 8" );
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     std::unique_ptr< std::int64_t[] > residual;
     Subframe::PartitionedRice rice;
     std::uint8_t const partition_order = rice.order = bs.get( 4 );
@@ -57,7 +57,7 @@ template< typename BitStream >
 static
 Subframe::Residual ReadSubframe_Residual( BitStream &b, std::uint8_t predictor_order, std::uint8_t const bps, std::uint16_t const blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Residual res;
     res.type = static_cast< Subframe::EntropyCodingMethodType >( bs.get( 2 ) );
     switch( res.type )
@@ -80,7 +80,7 @@ template< typename BitStream >
 static
 Subframe::LPC ReadSubframe_LPC( BitStream &b, std::uint8_t const order, std::uint8_t const bps, std::uint16_t const blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::LPC lpc;
     lpc.order = order;
     for( std::uint8_t i = 0; i < order; ++i )
@@ -102,7 +102,7 @@ template< typename BitStream >
 static
 Subframe::Fixed ReadSubframe_Fixed( BitStream &b, std::uint8_t const order, std::uint8_t const bps, std::uint16_t const blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Fixed fixed;
     if( order > 4 )
         throw exception( "ReadSubframe_Fixed: order is too big" );
@@ -119,7 +119,7 @@ template< typename BitStream >
 static
 Subframe::Verbatim ReadSubframe_Verbatim( BitStream &b, std::uint8_t const bps, std::uint16_t const blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Verbatim v;
     v.data = std::make_unique< std::int32_t[] >( blocksize );
     for( std::uint16_t i = 0; i < blocksize; ++i )
@@ -133,7 +133,7 @@ template< typename BitStream >
 static
 Subframe::Constant ReadSubframe_Constant( BitStream &b, std::uint8_t const bps, std::uint16_t const blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Constant c;
     c.value = bs.get_int( bps );
     return std::move( c );
@@ -145,7 +145,7 @@ template< typename BitStream >
 static
 Subframe::Header ReadSubframe_Header( BitStream &b )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Header sfh;
     if( bs.get( 1 ) != 0b0 ) // must be zero
         return {};
@@ -183,7 +183,7 @@ template< typename BitStream >
 static
 Subframe::Subframe ReadSubframe( BitStream &b, std::uint8_t bps, std::uint16_t blocksize )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Subframe::Subframe sf;
     sf.header = ReadSubframe_Header( bs );
     switch( sf.header.type )
@@ -210,7 +210,7 @@ template< typename BitStream >
 static
 Frame::Footer ReadFrame_Footer( BitStream &b )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     Frame::Footer f;
     f.crc = bs.get( 16 );
     return std::move( f );
@@ -222,7 +222,7 @@ template< typename BitStream >
 static
 Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     assert( bs.is_byte_aligned() );
     Frame::Header h;
     if( bs.get( 14 ) != FRAME_HEADER_SYNC )
@@ -330,7 +330,7 @@ Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
 Frame::Frame ReadFrame( bytestream<> &b, MetaData::StreamInfo const &si )
 {
     bitstream< bytestream<> > bits( b );
-    auto bs = make_usefull_bitstream( bits );
+    auto bs = make_useful_bitstream( bits );
     Frame::Frame f;
     f.header = ReadFrame_Header( bs, si );
     for( std::uint8_t i = 0; i < f.header.channels; ++i )
@@ -369,7 +369,7 @@ template< typename BitStream >
 static
 MetaData::Padding ReadMetadata_Padding( BitStream &b, std::uint32_t length )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     assert( bs.is_byte_aligned() );
     MetaData::Padding p;
     return std::move( p );
@@ -381,7 +381,7 @@ template< typename BitStream >
 static
 MetaData::StreamInfo ReadMetadata_StreamInfo( BitStream &b, std::uint32_t length )
 {
-    auto bs = make_usefull_bitstream( b );
+    auto bs = make_useful_bitstream( b );
     assert( bs.is_byte_aligned() );
     MetaData::StreamInfo si;
     si.min_blocksize   = bs.get( 16 );
@@ -401,7 +401,7 @@ MetaData::StreamInfo ReadMetadata_StreamInfo( BitStream &b, std::uint32_t length
 MetaData::Metadata ReadMetadata( bytestream<> &b )
 {
     bitstream< bytestream<> > bits( b );
-    auto bs = make_usefull_bitstream( bits );
+    auto bs = make_useful_bitstream( bits );
     MetaData::Metadata md;
     md.is_last = bs.get( 1 );
     md.type    = static_cast< MetaData::Type >( bs.get( 7 ) );

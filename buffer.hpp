@@ -359,7 +359,7 @@ auto make_bitstream( ByteStream &bs ) noexcept
 }
 
 template< typename BitStream >
-class usefull_bitstream 
+class useful_bitstream 
 {
 private:
     BitStream &bs;
@@ -381,14 +381,14 @@ private:
     }
 
 public:
-    usefull_bitstream( BitStream &bs ) noexcept
+    useful_bitstream( BitStream &bs ) noexcept
         : bs( bs )
     {
     }
-    usefull_bitstream( usefull_bitstream const & ) = default;
-    usefull_bitstream( usefull_bitstream && ) = default;
-    usefull_bitstream &operator=( usefull_bitstream const & ) = default;
-    usefull_bitstream &operator=( usefull_bitstream && ) = default;
+    useful_bitstream( useful_bitstream const & ) = default;
+    useful_bitstream( useful_bitstream && ) = default;
+    useful_bitstream &operator=( useful_bitstream const & ) = default;
+    useful_bitstream &operator=( useful_bitstream && ) = default;
     
     std::uint64_t get( std::uint8_t const bit )
     {
@@ -582,14 +582,14 @@ public:
 };
 
 template< typename BitStream >
-auto make_usefull_bitstream( BitStream &bs ) noexcept
+auto make_useful_bitstream( BitStream &bs ) noexcept
 {
-    return usefull_bitstream< BitStream >( bs );
+    return useful_bitstream< BitStream >( bs );
 }
 template< typename BitStream >
-auto make_usefull_bitstream( usefull_bitstream< BitStream > &bs ) noexcept
+auto make_useful_bitstream( useful_bitstream< BitStream > &bs ) noexcept
 {
-    return usefull_bitstream< BitStream >( bs.get_bitstream() );
+    return useful_bitstream< BitStream >( bs.get_bitstream() );
 }
 
 } // namespace buffer
