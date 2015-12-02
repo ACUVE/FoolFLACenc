@@ -228,6 +228,12 @@ public:
     }
 };
 
+template< typename AHASH, typename... Hashes >
+bytestream< AHASH, Hashes... > make_hash_bytestream( bytestream< Hashes... > &bs )
+{
+    return bs.template add_hash< AHASH >();
+}
+
 template< typename ByteStream >
 class bitstream
 {
