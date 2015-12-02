@@ -7,17 +7,33 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <experimental/optional>
 
 #include "variant.hpp"
 
-class bitstream;
+
+// in buffer.hpp
+namespace buffer{
+    template< typename... >
+    class bytestream;
+}
 
 namespace FLAC
 {
 
-template< typename T>
-using optional = std::experimental::optional< T >;
+class exception : public std::exception
+{
+private:
+    char const *w;
+public:
+    exception( char const *what ) noexcept
+        : w( what )
+    {
+    }
+    virtual char const *what() const noexcept
+    {
+        return w;
+    }
+};
 
 constexpr std::uint16_t MIN_BLOCK_SIZE          = 16;
 constexpr std::uint16_t MAX_BLOCK_SIZE          = 65535;
@@ -268,8 +284,8 @@ namespace MetaData
 
 // functions
 //// read.cpp
-optional< MetaData::Metadata > ReadMetadata( bitstream &bs );
-optional< Frame::Frame >       ReadFrame   ( bitstream &bs, MetaData::StreamInfo const &si );
+MetaData::Metadata ReadMetadata( buffer::bytestream<> &bs );
+Frame::Frame       ReadFrame   ( buffer::bytestream<> &bs, MetaData::StreamInfo const &si );
 //// print.cpp
 void PrintStreamInfo      ( FLAC::MetaData::StreamInfo const &si );
 void PrintFrameHeader     ( FLAC::Frame::Header const &fh );

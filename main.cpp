@@ -5,8 +5,9 @@
 #include <iomanip>
 #include <string>
 #include <utility>
+#include <experimental/optional>
 
-#include "bitstream.hpp"
+#include "buffer.hpp"
 #include "flac_struct.hpp"
 
 constexpr char const *filename = "flac.flac";
@@ -37,46 +38,52 @@ bool fatal( Args &&... args )
     fatal_impl( std::forward< Args >( args )... );
 }
 
-int main( int argc, char **argv )
+void dump_flacfile( char const *filename )
 {
-    char const *openfilename = argc > 1 ? argv[ 1 ] : filename;
-    std::ifstream file( openfilename, std::ios::binary | std::ios::ate );
+    std::ifstream file( filename, std::ios::binary | std::ios::ate );
     if( !file )
-        fatal( openfilename, " open error" );
+        fatal( filename, " open error" );
     std::streamsize size = file.tellg();
     file.seekg( 0, std::ios::beg );
     auto buff = std::make_unique< std::uint8_t[] >(size);
     if( !file.read( (char *)buff.get(), size ) )
-        fatal( openfilename, " is not readable." );
-    bitstream bs( std::move( buff ), size );
-    if( std::memcmp( bs.get_bytes< 4 >().data(), FLAC::STREAM_SYNC_STRING, 4 ) != 0 )
-        fatal( openfilename, " is not FLAC file." );
-    if( bs.is_error() )
-        fatal( openfilename, " is not FLAC file?" );
+        fatal( filename, " is not readable." );
+    buffer::bytestream<> bs( buffer::buffer( std::move( buff ), size ) );
+    if( std::memcmp( bs.get_bytes( 4 ).get(), FLAC::STREAM_SYNC_STRING, 4 ) != 0 )
+        fatal( filename, " is not FLAC file." );
     
-    FLAC::optional< FLAC::MetaData::StreamInfo > si;
+    std::experimental::optional< FLAC::MetaData::StreamInfo > si;
     while( true )
     {
         auto md = FLAC::ReadMetadata( bs );
-        if( !md )
-            fatal( openfilename, ": ReadMetadata error." );
-        if( md->type == FLAC::MetaData::Type::STREAMINFO )
-            si = md->data.data< FLAC::MetaData::StreamInfo >();
-        if( md->is_last )
+        if( md.type == FLAC::MetaData::Type::STREAMINFO )
+            si = md.data.data< FLAC::MetaData::StreamInfo >();
+        if( md.is_last )
             break;
     }
     if( !si )
-        fatal( openfilename, ": No StreamInfo.");
+        fatal( filename, ": No StreamInfo.");
     FLAC::PrintStreamInfo( *si );
     
     while( true )
     {
         auto frame = FLAC::ReadFrame( bs, *si );
-        if( !frame )
-            fatal( openfilename, ": ReadFrame error.");
         std::cout << "-----------------------------------" << std::endl;
-        FLAC::PrintFrame( *frame );
-        if( std::get< 0 >( bs.get_position() ) >= size )
+        FLAC::PrintFrame( frame );
+        if( bs.get_position() >= size )
             break;
+    }
+}
+
+int main( int argc, char **argv )
+{
+    char const *openfilename = argc > 1 ? argv[ 1 ] : filename;
+    try
+    {
+        dump_flacfile( openfilename );
+    }
+    catch( std::exception &e )
+    {
+        std::cerr << e.what() << std::endl;
     }
 }
