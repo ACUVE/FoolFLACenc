@@ -83,21 +83,21 @@ namespace Subframe
     };
     struct Verbatim
     {
-        std::unique_ptr< std::int32_t[] > data;
+        std::unique_ptr< std::int64_t[] > data;
     };
     struct Fixed
     {
         std::uint8_t order;
-        std::int32_t warmup[MAX_FIXED_ORDER];
+        std::int64_t warmup[MAX_FIXED_ORDER];
         Residual     residual;
     };
     struct LPC
     {
         std::uint8_t order;
+        std::int64_t warmup[MAX_LPC_ORDER];
         std::uint8_t qlp_coeff_precision;
         std::uint8_t quantization_level;
-        std::int32_t qlp_coeff[MAX_LPC_ORDER];
-        std::int32_t warmup[MAX_LPC_ORDER];
+        std::int16_t qlp_coeff[MAX_LPC_ORDER];
         Residual     residual;
     };
     struct Header

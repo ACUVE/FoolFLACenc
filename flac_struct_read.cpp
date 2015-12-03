@@ -122,7 +122,7 @@ Subframe::Verbatim ReadSubframe_Verbatim( BitStream &b, std::uint8_t const bps, 
 {
     auto bs = make_useful_bitstream( b );
     Subframe::Verbatim v;
-    v.data = std::make_unique< std::int32_t[] >( blocksize );
+    v.data = std::make_unique< std::int64_t[] >( blocksize );
     for( std::uint16_t i = 0; i < blocksize; ++i )
         v.data[ i ] = bs.get_int( bps );
     return std::move( v );
