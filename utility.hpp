@@ -1,6 +1,13 @@
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
+#include <cstdlib>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <tuple>
+#include <vector>
+
 [[noreturn]]
 inline
 bool fatal_impl( void )
@@ -26,5 +33,7 @@ bool fatal( Args &&... args )
     std::cerr << "fatal: ";
     fatal_impl( std::forward< Args >( args )... );
 }
+
+std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char const *filename );
 
 #endif // UTILITY_HPP

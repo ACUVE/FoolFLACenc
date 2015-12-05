@@ -16,14 +16,11 @@ try
     if( argc < 3 )
         fatal( "no filename" );
     char const *filename = argv[ 1 ], *outfilename = argv[ 2 ];
-    std::ifstream file( filename, std::ios::binary | std::ios::ate );
-    if( !file )
-        fatal( filename, " open error" );
-    std::streamsize size = file.tellg();
-    file.seekg( 0, std::ios::beg );
-    auto buff = std::make_unique< std::uint8_t[] >(size);
-    if( !file.read( (char *)buff.get(), size ) )
-        fatal( filename, " is not readable." );
+    std::unique_ptr< std::uint8_t[] > buff;
+    std::size_t size;
+    std::tie( buff, size ) = read_file( filename );
+    if( !buff )
+        fatal( filename, " load error" );
     buffer::bytestream<> bs( buffer::buffer( std::move( buff ), size ) );
     if( std::memcmp( bs.get_bytes( 4 ).get(), FLAC::STREAM_SYNC_STRING, 4 ) != 0 )
         fatal( filename, " is not FLAC file." );
