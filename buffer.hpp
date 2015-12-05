@@ -485,6 +485,11 @@ public:
             buff[ i ] = get( 8 );
         return std::move( buff );
     }
+    void put_bytes( std::uint8_t const *buff, std::size_t const size )
+    {
+        for( std::size_t i = 0; i < size; ++i )
+            put( buff[ i ] , 8 );
+    }
     std::uint64_t get_utf8( void )
     {
         std::uint64_t num = 0;
