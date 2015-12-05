@@ -286,6 +286,9 @@ namespace MetaData
 //// read.cpp
 MetaData::Metadata ReadMetadata( buffer::bytestream<> &bs );
 Frame::Frame       ReadFrame   ( buffer::bytestream<> &bs, MetaData::StreamInfo const &si );
+//// write.cpp
+void WriteFrame   ( buffer::bytestream<> &bs, Frame::Frame const &f );
+void WriteMetadata( buffer::bytestream<> &bs, MetaData::Metadata const &md );
 //// print.cpp
 void PrintStreamInfo      ( FLAC::MetaData::StreamInfo const &si );
 void PrintFrameHeader     ( FLAC::Frame::Header const &fh );

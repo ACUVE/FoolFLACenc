@@ -27,5 +27,6 @@ install_manifest.txt
 *.flac
 dump_flac
 decode_flac
+encode_flac
 
 *.swp
