@@ -5,8 +5,8 @@
 #include <fstream>
 #include <experimental/optional>
 
-#include "buffer.hpp"
-#include "flac_struct.hpp"
+#include "flacutil/buffer.hpp"
+#include "flacutil/flac_struct.hpp"
 
 [[noreturn]]
 inline
