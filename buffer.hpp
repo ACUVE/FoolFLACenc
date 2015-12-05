@@ -159,6 +159,10 @@ public:
     {
         return std::move( bytestream< AHASH >( *this ) );
     }
+    std::uint8_t const *data() const noexcept
+    {
+        return buffer::get();
+    }
 };
 template< typename Hash, typename... Hashes >
 class bytestream< Hash, Hashes... >
@@ -225,6 +229,10 @@ public:
     bytestream< AHASH, Hash, Hashes... > add_hash( void ) noexcept
     {
         return std::move( bytestream< AHASH, Hash, Hashes... >( *this ) );
+    }
+    std::uint8_t const *data() const noexcept
+    {
+        return under.data();
     }
     Hash const &get_hash() const noexcept
     {
