@@ -367,7 +367,8 @@ Frame::Frame ReadFrame( bytestream<> &b, MetaData::StreamInfo const &si )
         f.subframes[ i ] = ReadSubframe( bs, bps, f.header.blocksize );
     }
     while( std::get< 1 >( bs.get_position() ) )
-        bs.get( 1 );
+        if( bs.get( 1 ) != 0b0 )
+            throw exception( "ReadFrame: padding is not zero" );
     assert( bs.is_byte_aligned() );
     std::uint16_t const calculated_crc16 = crc16bs.get_hash().get();
     auto noncrc16bits = make_bitstream( b );
