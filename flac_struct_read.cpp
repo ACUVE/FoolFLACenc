@@ -33,8 +33,8 @@ std::tuple< std::unique_ptr< std::int64_t[] >, Subframe::PartitionedRice > ReadS
     std::uint32_t sample = 0;
     for( std::uint32_t partition = 0; partition < partitions; ++partition )
     {
-        std::uint8_t rice_parameter = rice.parameters[ partition ] = bs.get( PARAMETER_LEN );
-        std::uint16_t this_part_sample_num = partition == 0 ? (blocksize >> partition_order) - predictor_order : blocksize >> partition_order;
+        std::uint8_t const rice_parameter = rice.parameters[ partition ] = bs.get( PARAMETER_LEN );
+        std::uint16_t const this_part_sample_num = partition == 0 ? (blocksize >> partition_order) - predictor_order : blocksize >> partition_order;
         if( rice_parameter != ESCAPE_PARAMETER )
         {
             rice.is_raw_bits[ partition ] = false;
@@ -43,7 +43,7 @@ std::tuple< std::unique_ptr< std::int64_t[] >, Subframe::PartitionedRice > ReadS
         }
         else
         {
-            std::uint8_t bits_per_sample = bs.get( 5 );
+            std::uint8_t const bits_per_sample = rice.parameters[ partition ] = bs.get( 5 );
             rice.is_raw_bits[ partition ] = true;
             for( std::uint16_t u = 0; u < this_part_sample_num; ++u, ++sample )
                 residual[ sample ] = bs.get_int( bits_per_sample );
@@ -182,7 +182,7 @@ Subframe::Header ReadSubframe_Header( BitStream &b )
 
 template< typename BitStream >
 static
-Subframe::Subframe ReadSubframe( BitStream &b, std::uint8_t bps, std::uint16_t blocksize )
+Subframe::Subframe ReadSubframe( BitStream &b, std::uint8_t const bps, std::uint16_t const blocksize )
 {
     auto bs = make_useful_bitstream( b );
     Subframe::Subframe sf;
@@ -325,7 +325,7 @@ Frame::Header ReadFrame_Header( BitStream &b, MetaData::StreamInfo const &si )
     case 0b110: h.bits_per_sample = 24; break;
     }
     assert( bs.is_byte_aligned() );
-    std::uint8_t calculated_crc8 = crc8bs.get_hash().get();
+    std::uint8_t const calculated_crc8 = crc8bs.get_hash().get();
     auto noncrc8bs = make_useful_bitstream( b );
     h.crc = noncrc8bs.get( 8 );
     if( h.crc != calculated_crc8 )
@@ -369,10 +369,10 @@ Frame::Frame ReadFrame( bytestream<> &b, MetaData::StreamInfo const &si )
     while( std::get< 1 >( bs.get_position() ) )
         bs.get( 1 );
     assert( bs.is_byte_aligned() );
-    std::uint16_t calculated_crc = crc16bs.get_hash().get();
+    std::uint16_t const calculated_crc16 = crc16bs.get_hash().get();
     auto noncrc16bits = make_bitstream( b );
     f.footer = ReadFrame_Footer( noncrc16bits ); // ReadFrame_Footer only read crc
-    if( f.footer.crc != calculated_crc )
+    if( f.footer.crc != calculated_crc16 )
         throw exception( "ReadFrame: crc mismatch" );
     return std::move( f );
 }
@@ -406,7 +406,7 @@ MetaData::StreamInfo ReadMetadata_StreamInfo( BitStream &b, std::uint32_t length
     si.channels        = bs.get(  3 ) + 1;
     si.bits_per_sample = bs.get(  5 ) + 1;
     si.total_sample    = bs.get( 36 );
-    std::memcpy(si.md5sum, bs.get_bytes( 16 ).get(), 16);
+    std::memcpy( si.md5sum, bs.get_bytes( 16 ).get(), 16 );
     return std::move( si );
 }
 
