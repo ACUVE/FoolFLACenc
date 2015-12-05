@@ -43,14 +43,16 @@ private:
     {
         if( which_have == I )
             func( data< I >(), std::forward< Args >( args )... );
-        apply_impl< I + 1 >( std::forward< Func >( func ), std::forward< Args >( args )... );
+        else
+            apply_impl< I + 1 >( std::forward< Func >( func ), std::forward< Args >( args )... );
     }
     template< std::size_t I, typename Func, typename... Args >
     std::enable_if_t< I < type_size > apply_impl( Func &&func, Args &&... args ) const
     {
         if( which_have == I )
             func( data< I >(), std::forward< Args >( args )... );
-        apply_impl< I + 1 >( std::forward< Func >( func ), std::forward< Args >( args )... );
+        else
+            apply_impl< I + 1 >( std::forward< Func >( func ), std::forward< Args >( args )... );
     }
     template< std::size_t I, typename Func, typename... Args >
     std::enable_if_t< I >= type_size > apply_impl( Func &&func, Args &&... args ) const
