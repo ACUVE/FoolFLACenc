@@ -83,6 +83,10 @@ public:
     {
         return buff[ index ];
     }
+    std::uint8_t const *get() const noexcept
+    {
+        return buff.get();
+    }
 };
 
 template< typename... >
