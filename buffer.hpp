@@ -539,6 +539,21 @@ public:
             throw exception( "get_utf8: not utf8" );
         return num;
     }
+    void put_utf8( std::uint64_t const num )
+    {
+        if( num > 0xFFFFFFFFF )
+            throw exception( "put_utf8: too big" );
+        static constexpr std::uint64_t max_table[] = { 0x7F, 0x7FF, 0xFFFF, 0x1FFFFF, 0x3FFFFFF, 0x7FFFFFFF };
+        std::size_t len = 0;
+        for( ; len < sizeof( max_table ) / sizeof( max_table[ 0 ] ); ++len )
+            if( num <= max_table[ len ] )
+                break;
+        static constexpr std::uint8_t mask_table[] = { 0x7F, 0x1F, 0x0F, 0x07, 0x03, 0x01, 0x00 };
+        static constexpr std::uint8_t upmask_table[] = { 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE };
+        put( upmask_table[ len ] | (mask_table[ len ] & (num >> (len * 6))) , 8 );
+        for( std::size_t i = 0; i < len; ++i )
+            put( 0x80 | (0x3F & (num >> ((len - i - 1) * 6))), 8 );
+    }
     bool is_available( std::uint8_t bit ) const noexcept
     {
         return bs.is_available( bit );
