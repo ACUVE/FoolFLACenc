@@ -146,7 +146,12 @@ public:
     }
     void reserve( std::size_t const size )
     {
-        buffer::reserve( size );
+        std::size_t rsize = buffer::get_size();
+        if( rsize == 0 )
+            rsize = 1;
+        while( size > rsize )
+            rsize *= 2;
+        buffer::reserve( rsize );
     }
     bool is_available( std::size_t const size = 1 ) const noexcept
     {
