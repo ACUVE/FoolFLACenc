@@ -15,10 +15,6 @@ namespace buffer{
 
 namespace detail
 {
-    template< std::size_t BIT >
-    using bit_calc_type_t = std::enable_if_t< 1 <= BIT && BIT <= 64, std::conditional_t< BIT <= 8, std::uint8_t, std::conditional_t< BIT <= 16, std::uint16_t, std::conditional_t< BIT <= 32, std::uint32_t, std::uint64_t > > > >;
-    template< std::size_t BIT >
-    using bit_calc_type_int_t = std::enable_if_t< 1 <= BIT && BIT <= 64, std::conditional_t< BIT <= 8, std::int8_t, std::conditional_t< BIT <= 16, std::int16_t, std::conditional_t< BIT <= 32, std::int32_t, std::int64_t > > > >;
     constexpr std::size_t BITS_IN_BYTE = 8;
 } // namespace detail
 
