@@ -295,7 +295,7 @@ public:
         }
         return num;
     }
-    void put( std::uint64_t const num, std::uint8_t const bit )
+    void put( std::uint64_t num, std::uint8_t const bit )
     {
         assert( 1 <= bit && bit <= 64 );
         num = mask_num( num, bit );
