@@ -1,5 +1,5 @@
-#ifndef UTILITY_HPP
-#define UTILITY_HPP
+#ifndef FLACUTIL_UTILITY_HPP
+#define FLACUTIL_UTILITY_HPP
 
 namespace utility
 {
@@ -27,4 +27,4 @@ constexpr std::uint8_t clz( std::uint64_t num ) noexcept
 
 } // namespace utility
 
-#endif // UTILITY_HPP
+#endif // FLACUTIL_UTILITY_HPP

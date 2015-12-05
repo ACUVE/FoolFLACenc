@@ -1,5 +1,5 @@
-#ifndef HASH_HPP
-#define HASH_HPP
+#ifndef FLACUTIL_HASH_HPP
+#define FLACUTIL_HASH_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -48,4 +48,4 @@ public:
 
 } // namespace hash
 
-#endif // HASH_HPP
+#endif // FLACUTIL_HASH_HPP

@@ -1,7 +1,7 @@
 // License: GPLv3 or Later
 
-#ifndef FLAC_STRUCT_HPP
-#define FLAC_STRUCT_HPP
+#ifndef FLACUTIL_FLAC_STRUCT_HPP
+#define FLACUTIL_FLAC_STRUCT_HPP
 
 #include <cstdint>
 #include <memory>
@@ -305,4 +305,4 @@ void PrintFrame           ( FLAC::Frame::Frame const &f );
 
 } // namespace FLAC
 
-#endif // FLAC_STRUCT_HPP
+#endif // FLACUTIL_FLAC_STRUCT_HPP

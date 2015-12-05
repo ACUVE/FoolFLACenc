@@ -1,5 +1,5 @@
-#ifndef BITSTREAM_HPP
-#define BITSTREAM_HPP
+#ifndef FLACUTIL_BITSTREAM_HPP
+#define FLACUTIL_BITSTREAM_HPP
 
 #include <array>
 #include <cassert>
@@ -637,4 +637,4 @@ auto make_useful_bitstream( useful_bitstream< BitStream > &bs ) noexcept
 
 } // namespace buffer
 
-#endif // BITSTREAM_HPP
+#endif // FLACUTIL_BITSTREAM_HPP

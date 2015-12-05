@@ -1,5 +1,5 @@
-#ifndef VARIANT_HPP
-#define VARIANT_HPP
+#ifndef FLACUTIL_VARIANT_HPP
+#define FLACUTIL_VARIANT_HPP
 
 #include <limits>
 #include <tuple>
@@ -208,4 +208,4 @@ public:
     }
 };
 
-#endif
+#endif // FLACUTIL_VARIANT_HPP

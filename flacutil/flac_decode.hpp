@@ -1,5 +1,5 @@
-#ifndef DECODE_HPP
-#define DECODE_HPP
+#ifndef FLACUTIL_DECODE_HPP
+#define FLACUTIL_DECODE_HPP
 
 #include <cstdint>
 #include <memory>
@@ -20,4 +20,4 @@ void DecodeVerbatim( std::int64_t *buff, FLAC::Subframe::Verbatim const &v, std:
 
 } // namespace FLAC
 
-#endif // DECODE_HPP
+#endif // FLACUTIL_DECODE_HPP
