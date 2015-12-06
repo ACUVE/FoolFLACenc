@@ -36,13 +36,24 @@ void dump_flacfile( char const *filename )
         fatal( filename, ": No StreamInfo." );
     FLAC::PrintStreamInfo( *si );
     
-    while( true )
+    std::size_t frame_num = 0;
+    try
     {
-        auto frame = FLAC::ReadFrame( bs, *si );
-        std::cout << "-----------------------------------" << std::endl;
-        FLAC::PrintFrame( frame );
-        if( bs.get_position() >= size )
-            break;
+        while( true )
+        {
+            auto frame = FLAC::ReadFrame( bs, *si );
+            std::cout << "-----------------------------------" << std::endl;
+            FLAC::PrintFrame( frame );
+            if( bs.get_position() >= size )
+                break;
+            frame_num++;
+        }
+    }
+    catch( ... )
+    {
+        std::cerr << "dump_flacfile error" << std::endl;
+        std::cerr << "  frame_num = " << frame_num << std::endl;
+        throw;
     }
 }
 
