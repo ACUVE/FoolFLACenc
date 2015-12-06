@@ -34,6 +34,6 @@ bool fatal( Args &&... args )
     fatal_impl( std::forward< Args >( args )... );
 }
 
-std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char const *filename );
+std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char const *filename ) noexcept;
 
 #endif // UTILITY_HPP

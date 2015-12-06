@@ -6,7 +6,8 @@
 
 #include "utility.hpp"
 
-std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char const *filename )
+std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char const *filename ) noexcept
+try
 {
     std::ifstream file( filename, std::ios::binary | std::ios::ate );
     if( !file )
@@ -17,4 +18,8 @@ std::tuple< std::unique_ptr< std::uint8_t[] >, std::size_t > read_file( char con
     if( !file.read( (char *)buff.get(), size ) )
         return std::make_tuple( nullptr, 0 );
     return std::make_tuple( std::move( buff ), size );
+}
+catch( ... )
+{
+    return std::make_tuple( nullptr, 0 );
 }
