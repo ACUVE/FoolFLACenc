@@ -49,7 +49,7 @@ constexpr std::uint8_t  MAX_QLP_COEFF_PRECISION = 15;
 constexpr std::uint8_t  MAX_FIXED_ORDER         = 15;
 constexpr std::uint16_t FRAME_HEADER_SYNC       = 0x3ffe;
 
-constexpr std::uint32_t STREAMINFO_LENGTH       = 20;
+constexpr std::uint32_t STREAMINFO_LENGTH       = 34;
 
 namespace Subframe
 {
