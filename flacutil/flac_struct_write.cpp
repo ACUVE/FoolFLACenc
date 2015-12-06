@@ -401,6 +401,8 @@ template< typename BitStream >
 static
 void WriteMetadata_StreamInfo( BitStream &b, MetaData::StreamInfo const &si, std::uint32_t const length )
 {
+    if( length != STREAMINFO_LENGTH )
+        throw exception( "WriteMetadata_StreamInfo: bad length" );
     auto bs = make_useful_bitstream( b );
     assert( bs.is_byte_aligned() );
     bs.put( si.min_blocksize      , 16 );
@@ -412,6 +414,7 @@ void WriteMetadata_StreamInfo( BitStream &b, MetaData::StreamInfo const &si, std
     bs.put( si.bits_per_sample - 1,  5 );
     bs.put( si.total_sample       , 36 );
     bs.put_bytes( si.md5sum       , 16 );
+    assert( bs.is_byte_aligned() );
 }
 
 void WriteMetadata( bytestream<> &b, MetaData::Metadata const &md )
