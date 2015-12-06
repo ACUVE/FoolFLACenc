@@ -103,7 +103,7 @@ void WriteSubframe_Fixed( BitStream &b, Subframe::Fixed const &fixed, std::uint8
 
 template< typename BitStream >
 static
-Subframe::Verbatim WriteSubframe_Verbatim( BitStream &b, Subframe::Verbatim const &v, std::uint8_t const bps, std::uint16_t const blocksize )
+void WriteSubframe_Verbatim( BitStream &b, Subframe::Verbatim const &v, std::uint8_t const bps, std::uint16_t const blocksize )
 {
     auto bs = make_useful_bitstream( b );
     for( std::uint16_t i = 0; i < blocksize; ++i )
@@ -114,7 +114,7 @@ Subframe::Verbatim WriteSubframe_Verbatim( BitStream &b, Subframe::Verbatim cons
 
 template< typename BitStream >
 static
-Subframe::Constant WriteSubframe_Constant( BitStream &b, Subframe::Constant const &c ,std::uint8_t const bps, std::uint16_t const blocksize )
+void WriteSubframe_Constant( BitStream &b, Subframe::Constant const &c ,std::uint8_t const bps, std::uint16_t const blocksize )
 {
     auto bs = make_useful_bitstream( b );
     bs.put_int( c.value, bps );
@@ -186,7 +186,7 @@ void WriteSubframe( BitStream &b, Subframe::Subframe const &sf, std::uint8_t con
 
 template< typename BitStream >
 static
-Frame::Footer WriteFrame_Footer( BitStream &b, Frame::Footer const &f )
+void WriteFrame_Footer( BitStream &b, Frame::Footer const &f )
 {
     assert( b.is_byte_aligned() );
     auto bs = make_useful_bitstream( b );
