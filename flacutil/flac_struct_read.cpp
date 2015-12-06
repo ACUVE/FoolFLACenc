@@ -193,7 +193,7 @@ Subframe::Subframe ReadSubframe( BitStream &b, std::uint8_t const bps, std::uint
         sf.data = ReadSubframe_Constant( bs, bps, blocksize );
         break;
     case Subframe::Type::VERBATIM:
-            sf.data = ReadSubframe_Verbatim( bs, bps, blocksize );
+        sf.data = ReadSubframe_Verbatim( bs, bps, blocksize );
         break;
     case Subframe::Type::FIXED:
         sf.data = ReadSubframe_Fixed( bs, sf.header.type_bits & 0b000111, bps, blocksize );
