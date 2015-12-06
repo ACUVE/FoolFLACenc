@@ -83,6 +83,10 @@ public:
     {
         return buff.get();
     }
+    std::unique_ptr< std::uint8_t[] > move_data() && noexcept
+    {
+        return std::move( buff );
+    }
 };
 
 template< typename... >
@@ -163,6 +167,10 @@ public:
     std::uint8_t const *data() const noexcept
     {
         return buffer::get();
+    }
+    std::unique_ptr< std::uint8_t[] > move_data() && noexcept
+    {
+        return std::move( *this ).buffer::move_data();
     }
 };
 template< typename Hash, typename... Hashes >
