@@ -13,105 +13,6 @@
 
 #include "utility.hpp"
 
-template< typename ByteStream >
-class bytestream_le
-{
-private:
-    ByteStream &bs;
-    
-    template< std::uint8_t Bit >
-    static
-    std::int64_t uint2int( std::uint64_t val ) noexcept
-    {
-        static constexpr auto sign_mask = static_cast< std::uint64_t >( 1 ) << (Bit - 1 );
-        static constexpr auto value_mask = sign_mask - 1;
-        if( val & sign_mask )
-            return -static_cast< std::int64_t >( sign_mask - (val & value_mask) );
-        return static_cast< std::int64_t >( val & value_mask );
-    }
-    
-public:
-    bytestream_le( ByteStream &bs ) noexcept
-        : bs( bs )
-    {
-    }
-    std::uint8_t get8()
-    {
-        return bs.get_byte();
-    }
-    std::int8_t get8_int()
-    {
-        return uint2int< 8 >( get8() );
-    }
-    std::uint16_t get16()
-    {
-        auto const d = get8();
-        auto const u = get8();
-        return d | (static_cast< std::uint16_t >( u ) << 8);
-    }
-    std::int16_t get16_int()
-    {
-        return uint2int< 16 >( get16() );
-    }
-    std::uint32_t get24()
-    {
-        auto const d = get16();
-        auto const u = get8();
-        return d | (static_cast< std::uint32_t >( u ) << 16);
-    }
-    std::int32_t get24_int()
-    {
-        return uint2int< 24 >( get24() );
-    }
-    std::uint32_t get32()
-    {
-        auto const d = get16();
-        auto const u = get16();
-        return d | (static_cast< std::uint32_t >( u ) << 16);
-    }
-    std::uint32_t get32_int()
-    {
-        return uint2int< 32 >( get32() );
-    }
-    std::uint64_t get64()
-    {
-        auto const d = get32();
-        auto const u = get32();
-        return d | (static_cast< std::uint64_t >( u ) << 32);
-    }
-    std::uint64_t get64_t()
-    {
-        return uint2int< 64 >( get64() );
-    }
-    std::uint32_t get( std::size_t byte_num )
-    {
-        assert( 1 <= byte_num && byte_num <= 4 );
-        switch( byte_num )
-        {
-        case 1: return get8();
-        case 2: return get16();
-        case 3: return get24();
-        case 4: return get32();
-        }
-    }
-    std::int32_t get_int( std::size_t byte_num )
-    {
-        assert( 1 <= byte_num && byte_num <= 4 );
-        switch( byte_num )
-        {
-        case 1: return get8_int();
-        case 2: return get16_int();
-        case 3: return get24_int();
-        case 4: return get32_int();
-        }
-    }
-};
-template< typename ByteStream >
-bytestream_le< ByteStream > make_bytestream_le( ByteStream &bs ) noexcept
-{
-    return bytestream_le< ByteStream >( bs );
-}
-
 template< typename T >
 using optional = std::experimental::optional< T >;
 
@@ -132,7 +33,7 @@ try
     if( !buff )
         return {};
     buffer::bytestream<> bs( buffer::buffer( std::move( buff ), filesize ) );
-    auto le = make_bytestream_le( bs );
+    auto le = buffer::make_bytestream_le( bs );
     sound_data sd;
     if( std::memcmp( bs.get_bytes( 4 ).get(), "RIFF", 4 ) != 0 )
         return {};
