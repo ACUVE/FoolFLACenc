@@ -225,7 +225,7 @@ void WriteFrame_Header( BitStream &b, Frame::Header const &h )
     case 16384: bs.put( 0b1110, 4 ); break;
     case 32768: bs.put( 0b1111, 4 ); break;
     default:
-        if( h.sample_rate - 1 <= 0xFF )
+        if( h.blocksize - 1 <= 0xFF )
         {
             bs.put( 0b0110, 4 );
             blocksize_last = 1;
