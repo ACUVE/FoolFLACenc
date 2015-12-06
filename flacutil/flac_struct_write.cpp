@@ -390,6 +390,9 @@ void WriteMetadata_Padding( BitStream &b, MetaData::Padding const &p, std::uint3
 {
     auto bs = make_useful_bitstream( b );
     assert( bs.is_byte_aligned() );
+    for( std::uint32_t i = 0; i < length; ++i )
+        b.put( 0, 8 );
+    assert( bs.is_byte_aligned() );
 }
 
 /***********************************************************************************************************************/
