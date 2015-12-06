@@ -329,8 +329,8 @@ void WriteFrame_Header( BitStream &b, Frame::Header const &h )
     }
     switch( blocksize_last )
     {
-    case 1: bs.put( h.blocksize,  8 ); break;
-    case 2: bs.put( h.blocksize, 16 ); break;
+    case 1: bs.put( h.blocksize - 1,  8 ); break;
+    case 2: bs.put( h.blocksize - 1, 16 ); break;
     }
     switch( samplerate_last )
     {
