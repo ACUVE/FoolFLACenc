@@ -65,12 +65,27 @@ try
         for( std::size_t ch = 0; ch < sd.wave.size(); ++ch )
         {
             FLAC::Subframe::Subframe sf;
-            sf.header.type = FLAC::Subframe::Type::VERBATIM;
             sf.header.wasted_bits = 0;
-            FLAC::Subframe::Verbatim ver;
-            ver.data = std::make_unique< std::int64_t[] >( blocksize );
-            std::memcpy( ver.data.get(), &sd.wave[ ch ][ sample ], sizeof( std::int64_t ) * blocksize );
-            sf.data = std::move( ver );
+            if( [&]{
+                for( std::uint64_t s = sample, last = sample + blocksize; s < last; ++s )
+                    if( sd.wave[ ch ][ sample ] != sd.wave[ ch ][ s ] )
+                        return true;
+                return false;
+            }() )
+            {
+                sf.header.type = FLAC::Subframe::Type::VERBATIM;
+                FLAC::Subframe::Verbatim ver;
+                ver.data = std::make_unique< std::int64_t[] >( blocksize );
+                std::memcpy( ver.data.get(), &sd.wave[ ch ][ sample ], sizeof( std::int64_t ) * blocksize );
+                sf.data = std::move( ver );
+            }
+            else
+            {
+                sf.header.type = FLAC::Subframe::Type::CONSTANT;
+                FLAC::Subframe::Constant con;
+                con.value = sd.wave[ ch ][ sample ];
+                sf.data = std::move( con );
+            }
             f.subframes[ ch ] = std::move( sf );
         }
         std::size_t const pos = fbs.get_position();
