@@ -57,25 +57,7 @@ sound_data decode_flacfile( char const *filename )
     {
         auto frame = FLAC::ReadFrame( bs, *si );
         for( std::uint8_t ch = 0; ch < frame.header.channels; ++ch )
-        {
-            switch( frame.subframes[ ch ].header.type )
-            {
-            case FLAC::Subframe::Type::CONSTANT:
-                FLAC::DecodeConstant( &sound.wave[ ch ][ sample ], frame.subframes[ ch ].data.data< FLAC::Subframe::Constant >(), frame.header.blocksize );
-                break;
-            case FLAC::Subframe::Type::FIXED:
-                FLAC::DecodeFixed( &sound.wave[ ch ][ sample ], frame.subframes[ ch ].data.data< FLAC::Subframe::Fixed >(), frame.header.blocksize );
-                break;
-            case FLAC::Subframe::Type::LPC:
-                FLAC::DecodeLPC( &sound.wave[ ch ][ sample ], frame.subframes[ ch ].data.data< FLAC::Subframe::LPC >(), frame.header.blocksize );
-                break;
-            case FLAC::Subframe::Type::VERBATIM:
-                FLAC::DecodeVerbatim( &sound.wave[ ch ][ sample ], frame.subframes[ ch ].data.data< FLAC::Subframe::Verbatim >(), frame.header.blocksize );
-                break;
-            default:
-                fatal( filename, " has unknown subframe type" );
-            }
-        }
+            FLAC::DecodeSubframe( &sound.wave[ ch ][ sample ], frame.subframes[ ch ], frame.header.blocksize );
         switch( frame.header.channel_assignment )
         {
         case FLAC::Frame::ChannelAssignment::INDEPENDENT:
