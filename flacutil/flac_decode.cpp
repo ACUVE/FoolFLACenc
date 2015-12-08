@@ -5,37 +5,37 @@
 namespace FLAC
 {
 
-std::unique_ptr< std::int64_t[] > DecodeConstant( FLAC::Subframe::Constant const &c, std::uint16_t const blocksize )
+std::unique_ptr< std::int64_t[] > DecodeConstant( Subframe::Constant const &c, std::uint16_t const blocksize )
 {
     auto buff = std::make_unique< std::int64_t[] >( blocksize );
     DecodeConstant( buff.get(), c, blocksize );
     return std::move( buff );
 }
-std::unique_ptr< std::int64_t[] > DecodeFixed( FLAC::Subframe::Fixed const &f, std::uint16_t const blocksize )
+std::unique_ptr< std::int64_t[] > DecodeFixed( Subframe::Fixed const &f, std::uint16_t const blocksize )
 {
     auto buff = std::make_unique< std::int64_t[] >( blocksize );
     DecodeFixed( buff.get(), f, blocksize );
     return std::move( buff );
 }
-std::unique_ptr< std::int64_t[] > DecodeLPC( FLAC::Subframe::LPC const &lpc, std::uint16_t const blocksize )
+std::unique_ptr< std::int64_t[] > DecodeLPC( Subframe::LPC const &lpc, std::uint16_t const blocksize )
 {
     auto buff = std::make_unique< std::int64_t[] >( blocksize );
     DecodeLPC( buff.get(), lpc, blocksize );
     return std::move( buff );
 }
-std::unique_ptr< std::int64_t[] > DecodeVerbatim( FLAC::Subframe::Verbatim const &v, std::uint16_t const blocksize )
+std::unique_ptr< std::int64_t[] > DecodeVerbatim( Subframe::Verbatim const &v, std::uint16_t const blocksize )
 {
     auto buff = std::make_unique< std::int64_t[] >( blocksize );
     DecodeVerbatim( buff.get(), v, blocksize );
     return std::move( buff );
 }
 
-void DecodeConstant( std::int64_t *buff, FLAC::Subframe::Constant const &c, std::uint16_t const blocksize ) noexcept
+void DecodeConstant( std::int64_t *buff, Subframe::Constant const &c, std::uint16_t const blocksize ) noexcept
 {
     for( std::uint16_t i = 0; i < blocksize; ++i )
         buff[ i ] = c.value;
 }
-void DecodeFixed( std::int64_t *buff, FLAC::Subframe::Fixed const &f, std::uint16_t const blocksize ) noexcept
+void DecodeFixed( std::int64_t *buff, Subframe::Fixed const &f, std::uint16_t const blocksize ) noexcept
 {
     for( std::uint16_t i = 0; i < f.order; ++i )
         buff[ i ] = f.warmup[ i ];
@@ -65,7 +65,7 @@ void DecodeFixed( std::int64_t *buff, FLAC::Subframe::Fixed const &f, std::uint1
         throw exception( "DecodeFixed: unknown order" );
     }
 }
-void DecodeLPC( std::int64_t *buff, FLAC::Subframe::LPC const &lpc, std::uint16_t const blocksize ) noexcept
+void DecodeLPC( std::int64_t *buff, Subframe::LPC const &lpc, std::uint16_t const blocksize ) noexcept
 {
     for( std::uint16_t i = 0; i < lpc.order; ++i )
         buff[ i ] = lpc.warmup[ i ];
@@ -77,7 +77,7 @@ void DecodeLPC( std::int64_t *buff, FLAC::Subframe::LPC const &lpc, std::uint16_
         buff[ i ] = lpc.residual.residual[ i - lpc.order ] + (sum >> lpc.quantization_level);
     }
 }
-void DecodeVerbatim( std::int64_t *buff, FLAC::Subframe::Verbatim const &v, std::uint16_t const blocksize ) noexcept
+void DecodeVerbatim( std::int64_t *buff, Subframe::Verbatim const &v, std::uint16_t const blocksize ) noexcept
 {
     for( std::uint16_t i = 0; i < blocksize; ++i )
         buff[ i ] = v.data[ i ];
