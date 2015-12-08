@@ -29,6 +29,12 @@ std::unique_ptr< std::int64_t[] > DecodeVerbatim( Subframe::Verbatim const &v, s
     DecodeVerbatim( buff.get(), v, blocksize );
     return std::move( buff );
 }
+std::unique_ptr< std::int64_t[] > DecodeSubframe( Subframe::Subframe const &s, std::uint16_t const blocksize )
+{
+    auto buff = std::make_unique< std::int64_t[] >( blocksize );
+    DecodeSubframe( buff.get(), s, blocksize );
+    return std::move( buff );
+}
 
 void DecodeConstant( std::int64_t *buff, Subframe::Constant const &c, std::uint16_t const blocksize ) noexcept
 {
@@ -81,6 +87,27 @@ void DecodeVerbatim( std::int64_t *buff, Subframe::Verbatim const &v, std::uint1
 {
     for( std::uint16_t i = 0; i < blocksize; ++i )
         buff[ i ] = v.data[ i ];
+}
+void DecodeSubframe( std::int64_t *buff, Subframe::Subframe const &s, std::uint16_t const blocksize ) noexcept
+{
+    switch( s.header.type )
+    {
+    case Subframe::Type::CONSTANT:
+        DecodeConstant( buff, s.data.data< Subframe::Constant >(), blocksize );
+        break;
+    case Subframe::Type::FIXED:
+        DecodeFixed( buff, s.data.data< Subframe::Fixed >(), blocksize );
+        break;
+    case Subframe::Type::LPC:
+        DecodeLPC( buff, s.data.data< Subframe::LPC >(), blocksize );
+        break;
+    case Subframe::Type::VERBATIM:
+        DecodeVerbatim( buff, s.data.data< Subframe::Verbatim >(), blocksize );
+        break;
+    }
+    if( s.header.wasted_bits != 0 )
+        for( std::uint16_t i = 0; i < blocksize; ++i )
+            buff[ i ] <<= s.header.wasted_bits;
 }
 
 } // namespace FLAC
