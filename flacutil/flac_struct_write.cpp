@@ -32,6 +32,8 @@ void WriteSubframe_Residual_PartitionedRice( BitStream &b, std::int64_t const *r
         std::uint16_t const this_part_sample_num = partition == 0 ? (blocksize >> partition_order) - predictor_order : blocksize >> partition_order;
         if( !rice.is_raw_bits[ partition ] )
         {
+            if( rice.parameters[ partition ] >= ESCAPE_PARAMETER )
+                throw exception( "WriteSubframe_Residual_PartitionedRice: parameter is too big" );
             bs.put( rice.parameters[ partition ], PARAMETER_LEN );
             std::uint8_t const rice_parameter = rice.parameters[ partition ];
             for( std::uint16_t u = 0; u < this_part_sample_num; ++u, ++sample )
