@@ -2,13 +2,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <limits>
-#include <fstream>
 #include <random>
 #include <string>
-#include <experimental/optional>
+#include <tuple>
 
 #include "flacutil/buffer.hpp"
 #include "flacutil/flac_encode.hpp"
@@ -17,8 +17,45 @@
 
 #include "utility.hpp"
 
-template< typename T >
-using optional = std::experimental::optional< T >;
+std::tuple< FLAC::Subframe::Subframe, std::uint64_t > EncodeSubframe( std::int64_t const *first_sample, std::uint8_t const bps, std::uint16_t const blocksize )
+{
+    FLAC::Subframe::Subframe sf;
+    sf.header.wasted_bits = 0;
+    std::uint64_t best_bits = std::numeric_limits< decltype( best_bits ) >::max();
+    if( [&]{
+        for( auto sample = first_sample, last = sample + blocksize; sample < last; ++sample )
+            if( *sample != *first_sample )
+                return false;
+        return true;
+    }() )
+    {
+        auto con = FLAC::EncodeConstant( first_sample, bps, blocksize );
+        sf.header.type = FLAC::Subframe::Type::CONSTANT;
+        sf.data = std::get< 0 >( con );
+        best_bits = std::get< 1 >( con );
+    }
+    else
+    {
+        auto ver = FLAC::EncodeVerbatim( first_sample, bps, blocksize );
+        if( std::get< 1 >( ver ) < best_bits )
+        {
+            sf.header.type = FLAC::Subframe::Type::VERBATIM;
+            sf.data = std::move( std::get< 0 >( ver ) );
+            best_bits = std::get< 1 >( ver );
+        }
+        for( std::uint8_t order = 0; order <= 4; ++order )
+        {
+            auto fixed = FLAC::EncodeFixed( first_sample, bps, order, blocksize );
+            if( std::get< 1 >( fixed ) < best_bits )
+            {
+                sf.header.type = FLAC::Subframe::Type::FIXED;
+                sf.data = std::move( std::get< 0 >( fixed ) );
+                best_bits = std::get< 1 >( fixed );
+            }
+        }
+    }
+    return std::make_tuple( std::move( sf ), best_bits );
+}
 
 int main( int argc, char **argv )
 try
@@ -51,12 +88,10 @@ try
     buffer::bytestream<> fbs;
     std::random_device rnd_d;
     std::mt19937 gen( rnd_d() );
-    auto rand = std::bind( std::uniform_int_distribution< std::uint16_t >( 1 ), std::mt19937_64( rnd_d() ) );
     std::size_t const sample_width = std::to_string( sd.samples ).length();
     for( std::uint64_t sample = 0; sample < sd.samples; )
     {
         std::cout << std::setw( sample_width ) << sample << " / " << sd.samples << " : " << std::flush;
-        // std::uint16_t blocksize = rand();
         std::uint16_t blocksize = 8192;
         if( sample + blocksize > sd.samples )
             blocksize = sd.samples - sample;
@@ -66,50 +101,13 @@ try
         f.header.channels = sd.wave.size();
         f.header.channel_assignment = FLAC::Frame::ChannelAssignment::INDEPENDENT;
         f.header.bits_per_sample = sd.bits_per_sample;
-        // f.header.number_type = FLAC::Frame::NumberType::SAMPLE_NUMBER;
         f.header.number_type = FLAC::Frame::NumberType::FRAME_NUMBER;
-        // f.header.number.sample_number = sample;
         f.header.number.frame_number = sample / blocksize;
         std::uint64_t bits = 0;
         for( std::size_t ch = 0; ch < sd.wave.size(); ++ch )
         {
-            FLAC::Subframe::Subframe sf;
-            sf.header.wasted_bits = 0;
-            std::int64_t * const first_sample = &sd.wave[ ch ][ sample ];
-            std::uint64_t best_bits = std::numeric_limits< decltype( best_bits ) >::max();
-            if( [&]{
-                for( auto sample = first_sample, last = sample + blocksize; sample < last; ++sample )
-                    if( *sample != *first_sample )
-                        return false;
-                return true;
-            }() )
-            {
-                auto con = FLAC::EncodeConstant( first_sample, sd.bits_per_sample, blocksize );
-                sf.header.type = FLAC::Subframe::Type::CONSTANT;
-                sf.data = std::get< 0 >( con );
-                best_bits = std::get< 1 >( con );
-            }
-            else
-            {
-                auto ver = FLAC::EncodeVerbatim( first_sample, sd.bits_per_sample, blocksize );
-                if( std::get< 1 >( ver ) < best_bits )
-                {
-                    sf.header.type = FLAC::Subframe::Type::VERBATIM;
-                    sf.data = std::move( std::get< 0 >( ver ) );
-                    best_bits = std::get< 1 >( ver );
-                }
-                for( std::uint8_t order = 0; order <= 4; ++order )
-                {
-                    auto fixed = FLAC::EncodeFixed( first_sample, sd.bits_per_sample, order, blocksize );
-                    if( std::get< 1 >( fixed ) < best_bits )
-                    {
-                        sf.header.type = FLAC::Subframe::Type::FIXED;
-                        sf.data = std::move( std::get< 0 >( fixed ) );
-                        best_bits = std::get< 1 >( fixed );
-                    }
-                }
-            }
-            f.subframes[ ch ] = std::move( sf );
+            std::uint64_t best_bits;
+            std::tie( f.subframes[ ch ], best_bits ) = EncodeSubframe( &sd.wave[ ch ][ sample ], sd.bits_per_sample, blocksize );
             bits += best_bits;
         }
         std::size_t const pos = fbs.get_position();
