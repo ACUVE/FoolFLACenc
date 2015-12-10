@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <memory>
 #include <random>
 #include <string>
 #include <tuple>
@@ -109,6 +110,32 @@ try
             std::uint64_t best_bits;
             std::tie( f.subframes[ ch ], best_bits ) = EncodeSubframe( &sd.wave[ ch ][ sample ], sd.bits_per_sample, blocksize );
             bits += best_bits;
+        }
+        if( sd.wave.size() == 2 )
+        {
+            auto mid = std::make_unique< std::int64_t[] >( blocksize );
+            auto side = std::make_unique< std::int64_t[] >( blocksize );
+            for( std::uint16_t i = 0; i < blocksize; ++i )
+            {
+                std::int64_t m, s, x;
+                m = s = sd.wave[ 0 ][ sample + i ];
+                x = sd.wave[ 1 ][ sample + i ];
+                m += x;
+                s -= x;
+                m >>= 1; // TODO: OK?
+                mid[ i ] = m;
+                side[ i ] = s;
+            }
+            auto mid_subframe = EncodeSubframe( mid.get(), sd.bits_per_sample, blocksize );
+            auto side_subframe = EncodeSubframe( side.get(), sd.bits_per_sample + 1, blocksize );
+            std::uint64_t const mid_side_bits = std::get< 1 >( mid_subframe ) + std::get< 1 >( side_subframe );
+            if( mid_side_bits < bits )
+            {
+                f.header.channel_assignment = FLAC::Frame::ChannelAssignment::MID_SIDE;
+                f.subframes[ 0 ] = std::move( std::get< 0 >( mid_subframe ) );
+                f.subframes[ 1 ] = std::move( std::get< 0 >( side_subframe ) );
+                bits = mid_side_bits;
+            }
         }
         std::size_t const pos = fbs.get_position();
         FLAC::WriteFrame( fbs, f );
