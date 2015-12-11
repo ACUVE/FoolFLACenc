@@ -46,7 +46,7 @@ constexpr std::uint8_t  MAX_METADATA_TYPE_CODE  = 126;
 constexpr std::uint8_t  MAX_LPC_ORDER           = 32;
 constexpr std::uint8_t  MIN_QLP_COEFF_PRECISION = 5;
 constexpr std::uint8_t  MAX_QLP_COEFF_PRECISION = 15;
-constexpr std::uint8_t  MAX_FIXED_ORDER         = 15;
+constexpr std::uint8_t  MAX_FIXED_ORDER         = 4;
 constexpr std::uint16_t FRAME_HEADER_SYNC       = 0x3ffe;
 
 constexpr std::uint32_t STREAMINFO_LENGTH       = 34;
