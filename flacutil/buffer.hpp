@@ -718,6 +718,8 @@ public:
         case 2: return get16();
         case 3: return get24();
         case 4: return get32();
+        default:
+            throw exception( "bytestream_le::get: invalid byte_num" );
         }
     }
     std::int32_t get_int( std::size_t byte_num )
@@ -729,6 +731,8 @@ public:
         case 2: return get16_int();
         case 3: return get24_int();
         case 4: return get32_int();
+        default:
+            throw exception( "bytestream_le::get_int: invalid byte_num" );
         }
     }
 };
