@@ -42,7 +42,7 @@ std::unique_ptr< rice_search_data[] > MakeRiceSearchData( std::int64_t const *re
         {
             std::int64_t const s = residual[ sample ];
             std::uint64_t us = s >= 0 ? static_cast< std::uint64_t >( s ) << 1 : (static_cast< std::uint64_t >( -s ) << 1) - 1;
-            for( int k = 0; us && k < RICE_LEN; ++k, us >>= 1 )
+            for( unsigned int k = 0; us && k < RICE_LEN; ++k, us >>= 1 )
                 data[ part ].num[ k ] += us;
         }
     }
@@ -63,7 +63,7 @@ std::tuple< std::uint64_t, bool > FindBestRiceParameterFixedPartitions( std::uin
     {
         std::uint64_t sum[ RICE_LEN ] = {};
         for( std::uint16_t i = 0; i < same_part_num; ++i, ++part_index )
-            for( int m = 0; m < RICE_LEN; ++m )
+            for( unsigned int m = 0; m < RICE_LEN; ++m )
                 sum[ m ] += data[ part_index ].num[ m ];
         std::uint64_t min_part_bits = std::numeric_limits< decltype( min_part_bits ) >::max();
         std::uint8_t min_part_param = 0;
