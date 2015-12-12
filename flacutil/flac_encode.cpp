@@ -3,7 +3,9 @@
 #include <cstring>
 #include <limits>
 #include <tuple>
+
 #include <iostream>
+#include <mutex>
 
 #include "flac_encode.hpp"
 
@@ -128,6 +130,86 @@ std::uint64_t FindBestResidualParameter( Subframe::Residual &res, std::uint8_t c
     res.data = std::move( std::get< 0 >( t ) );
     return std::get< 2 >( t ) + 2;
 }
+static
+std::unique_ptr< double[] > CalcAutocorrelation( std::uint8_t const max_gap, std::int64_t const *buff, std::uint16_t const length )
+{
+    auto autoc = std::make_unique< double[] >( max_gap + 1 );
+    for( std::uint8_t i = 0; i <= max_gap; ++i )
+    {
+        std::uint16_t const loop_num = length - max_gap;
+        double d = 0;
+        for( std::uint16_t j = 0; j < loop_num; ++j )
+            d += static_cast< double >( buff[ j ] ) * static_cast< double >( buff[ j + i ] );
+        autoc[ i ] = d;
+    }
+    return std::move( autoc );
+}
+static
+std::unique_ptr< double[][ MAX_LPC_ORDER ] > CalcLPCCoefficient( std::int64_t const *buff, double const *autoc, std::uint8_t &max_order, std::uint16_t const blocksize )
+{
+    if( max_order == 0 )
+        return std::make_unique< double[][ MAX_LPC_ORDER ] >( 0 );
+    auto lpc = std::make_unique< double[][ MAX_LPC_ORDER ] >( max_order );
+    lpc[ 0 ][ 0 ] = autoc[ 1 ] / autoc[ 0 ];
+    double err = autoc[ 0 ] - lpc[ 0 ][ 0 ] * autoc[ 1 ];
+    for( std::uint8_t i = 1; i < max_order; ++i )
+    {
+        double const lambda = err == 0.0 ? 0.0 : [ & ]
+        {
+            double l = -autoc[ i + 1 ];
+            for( std::uint8_t j = 1; j <= i; ++j )
+                l += lpc[ i - 1 ][ j - 1 ] * autoc[ i + 1 - j ];
+            return l / err;
+        }();
+        for( std::uint8_t j = 0; j < i; ++j )
+            lpc[ i ][ j ] = lpc[ i - 1 ][ j ] + lambda * lpc[ i - 1 ][ i - j - 1 ];
+        lpc[ i ][ i ] = -lambda;
+        err *= 1 - lambda * lambda;
+        if( err == 0.0 )
+        {
+            max_order = i;
+            break;
+        }
+    }
+    return std::move( lpc );
+}
+static
+std::tuple< Subframe::LPC, std::uint64_t > EncodeLPCFixedOrderAndPrecision( std::uint8_t const order, std::uint8_t const precision, double const (*coef)[ MAX_LPC_ORDER ], std::int64_t const *src, std::uint8_t const bps, std::uint16_t const blocksize )
+{
+    Subframe::LPC lpc;
+    lpc.order = order;
+    for( std::uint8_t i = 0; i < order; ++i )
+        lpc.warmup[ i ] = src[ i ];
+    lpc.qlp_coeff_precision = precision;
+    double max_coef = 0;
+    for( std::uint8_t i = 0; i < order; ++i )
+        max_coef = std::max( max_coef, std::abs( coef[ order - 1 ][ i ] ) );
+    double const bits = std::log2( max_coef ) + 1;
+    // if( order <= 4 )
+    // {
+        // static std::mutex mutex;
+        // mutex.lock();
+        // std::cout << (int)order << "," << max_coef << ","  << bits << std::endl;
+        // mutex.unlock();
+    // }
+    std::int8_t const bits_int = static_cast< std::int8_t >( std::ceil( bits ) );
+    double const sumbits = std::log2( order ) + bps;
+    std::int8_t const max_bits_int = static_cast< std::int8_t >( std::ceil( bits + sumbits ) );
+    lpc.quantization_level = precision - bits_int;
+    for( std::int8_t i = 0; i < order; ++i )
+        lpc.qlp_coeff[ i ] = coef[ order - 1 ][ i ] * (1u << lpc.quantization_level);
+    lpc.residual.residual = std::make_unique< std::int64_t[] >( blocksize - order );
+    for( std::uint16_t i = order; i < blocksize; ++i )
+    {
+        std::int64_t sum = 0;
+        for( std::uint8_t j = 0; j < order; ++j )
+            sum += lpc.qlp_coeff[ j ] * src[ i - j - 1 ];
+        lpc.residual.residual[ i - order ] = src[ i ] - (sum >> lpc.quantization_level);
+    }
+    std::uint64_t const lenbits = FindBestResidualParameter( lpc.residual, order, blocksize );
+    // TODO:
+    return std::make_tuple( std::move( lpc ), lenbits + bps * order + lpc.qlp_coeff_precision * order + 9 );
+}
 
 std::tuple< Subframe::Constant, std::uint64_t > EncodeConstant( std::int64_t const *src, std::uint8_t const bps, std::uint16_t const blocksize )
 {
@@ -171,6 +253,29 @@ std::tuple< Subframe::Fixed, std::uint64_t > EncodeFixed( std::int64_t const *sr
     }
     std::uint64_t const bits = FindBestResidualParameter( f.residual, order, blocksize );
     return std::make_tuple( std::move( f ), bits + bps * order );
+}
+std::tuple< Subframe::LPC, std::uint64_t > EncodeLPC( std::int64_t const *src, std::uint8_t const bps, std::uint8_t const max_order, std::uint16_t const blocksize )
+{
+    if( max_order > MAX_LPC_ORDER )
+        throw exception( "EncodeLPC: max_order is too big" );
+    std::uint8_t bounded_max_order = max_order >= blocksize ? blocksize - 1 : max_order;
+    auto autoc = CalcAutocorrelation( bounded_max_order, src, blocksize );
+    auto lpccoef = CalcLPCCoefficient( src, autoc.get(), bounded_max_order, blocksize );
+    Subframe::LPC lpc;
+    std::uint64_t min_bits = std::numeric_limits< decltype( min_bits ) >::max();
+    for( std::uint8_t order = 1; order <= bounded_max_order; ++order )
+    {
+        for( std::uint8_t precision = MIN_QLP_COEFF_PRECISION; precision <= MAX_QLP_COEFF_PRECISION; ++precision )
+        {
+            auto encoded = EncodeLPCFixedOrderAndPrecision( order, precision, lpccoef.get(), src, bps, blocksize );
+            if( std::get< 1 >( encoded ) < min_bits )
+            {
+                min_bits = std::get< 1 >( encoded );
+                lpc = std::move( std::get< 0 >( encoded ) );
+            }
+        }
+    }
+    return std::make_tuple( std::move( lpc ), min_bits );
 }
 std::tuple< Subframe::Verbatim, std::uint64_t > EncodeVerbatim( std::int64_t const *src, std::uint8_t const bps, std::uint16_t const blocksize )
 {

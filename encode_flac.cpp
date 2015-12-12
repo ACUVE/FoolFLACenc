@@ -66,13 +66,13 @@ std::tuple< FLAC::Subframe::Subframe, std::uint64_t > EncodeSubframe( std::int64
                 best_bits = std::get< 1 >( fixed );
             }
         }
-        // auto lpc = FLAC::EncodeLPC( first_sample, bps, FLAC::MAX_LPC_ORDER, blocksize );
-        // if( std::get< 1 >( lpc ) < best_bits )
-        // {
-            // sf.header.type = FLAC::Subframe::Type::LPC;
-            // sf.data = std::move( std::get< 0 >( lpc ) );
-            // best_bits = std::get< 1 >( lpc );
-        // }
+        auto lpc = FLAC::EncodeLPC( first_sample, bps, FLAC::MAX_LPC_ORDER, blocksize );
+        if( std::get< 1 >( lpc ) < best_bits )
+        {
+            sf.header.type = FLAC::Subframe::Type::LPC;
+            sf.data = std::move( std::get< 0 >( lpc ) );
+            best_bits = std::get< 1 >( lpc );
+        }
     }
     return std::make_tuple( std::move( sf ), best_bits );
 }
