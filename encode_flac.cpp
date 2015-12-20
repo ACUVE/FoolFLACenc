@@ -2,6 +2,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -226,10 +227,22 @@ try
             }
         }).detach();
     }
+    auto start_time = std::chrono::high_resolution_clock::now();
     while( !pro.is_end() )
     {
         pro.wait_for( std::chrono::seconds( 1 ) );
-        std::printf( "\r%6.2f%%", static_cast< double >( pro.get() ) / pro.get_maxvalue() * 100 );
+        auto now_time = std::chrono::high_resolution_clock::now();
+        auto d = std::chrono::duration_cast< std::chrono::nanoseconds >( now_time - start_time );
+        std::printf( "\r%6.2f%% ", static_cast< double >( pro.get() ) / pro.get_maxvalue() * 100 );
+        if( pro.get() )
+        {
+            auto time = static_cast< double >( d.count() ) / pro.get() * ( pro.get_maxvalue() - pro.get() );
+            auto sec = static_cast< std::uint64_t >( time * decltype( d )::period::num / decltype( d )::period::den );
+            if( sec < 1e5 && !pro.is_end() )
+                std::printf( "%5" PRIu64 "s", sec );
+            else
+                std::printf( "      " );
+        }
         std::cout << std::flush;
     }
     std::cout << "\n" << "done!" << std::endl;
